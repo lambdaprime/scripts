@@ -2,6 +2,8 @@
 The TOC is composed with hyperlinks by pressing which you will jump to required location in the document.
 Everything in between <exclude></exclude> tags are ignored.
 
+*generateTOC.js* - same as generateTOC.pl but builds TOC on the fly once you load the HTML file in the browser.
+
 *gitstat.sh* - gathers the statistics about most changed files (java, xml, js) in git repository. The results are stored in files_*.txt files and includes the file name and number of times it was changed.
 
-ID <id.blackmesa@gmail.com>
+lambdaprime <id.blackmesa@gmail.com>
