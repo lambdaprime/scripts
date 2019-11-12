@@ -6,4 +6,6 @@ Everything in between <exclude></exclude> tags are ignored.
 
 *gitstat.sh* - gathers the statistics about most changed files (java, xml, js) in git repository. The results are stored in files_*.txt files and includes the file name and number of times it was changed.
 
+*Notifier99.java* - shows particular message every 20 minutes.
+
 lambdaprime <id.blackmesa@gmail.com>
