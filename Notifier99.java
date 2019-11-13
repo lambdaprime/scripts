@@ -1,7 +1,16 @@
 /**
  * Shows particular message every 20 minutes.
  *
- * Usage: CLASSPATH=<JAVAFX_SDK>/* jeval Notifier99.java
+ * Usage:
+ *
+ * - Linux
+ *
+ * CLASSPATH=<JAVAFX_SDK>/lib/* jeval Notifier99.java
+ *
+ * - Windows
+ *
+ * set CLASSPATH=<JAVAFX_SDK>/lib/*
+ * jeval %~dp0/Notifier99.java
  *
  * Requirements:
  *
@@ -27,6 +36,8 @@ class Notifier99 extends Application {
             alert.setTitle("Notifier99");
             alert.setHeaderText("");
             alert.setContentText("Unexpected error, application will be closed");
+            Stage alertStage = (Stage) alert.getDialogPane().getScene().getWindow();
+            alertStage.setAlwaysOnTop(true);
             alert.showAndWait();
             sleep(TimeUnit.MINUTES.toMillis(20));
         }
