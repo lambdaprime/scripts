@@ -8,4 +8,6 @@ Everything in between <exclude></exclude> tags are ignored.
 
 *Notifier99.java* - shows particular message every 20 minutes.
 
+*mysql-ping.java* - pings MySQL server indefinitely and prints the response time.
+
 lambdaprime <id.blackmesa@gmail.com>
