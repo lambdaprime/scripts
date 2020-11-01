@@ -10,4 +10,6 @@ Everything in between <exclude></exclude> tags are ignored.
 
 *mysql-ping.java* - pings MySQL server indefinitely and prints the response time.
 
+*md-to-html.java* - converts Markdown to HTML.
+
 lambdaprime <id.blackmesa@gmail.com>
