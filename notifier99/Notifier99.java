@@ -5,22 +5,19 @@
  *
  * - Linux
  *
- * export CLASSPATH=/media/x/javafx-sdk-11.0.2/lib/*
- * cd $(dirname $(readlink -f "$0"))
  * jeval Notifier99.java &
  *
  * - Windows
  *
- * set CLASSPATH=<JAVAFX_SDK>/lib/*
- * jeval %~dp0/Notifier99.java
+ * jeval Notifier99.java
  *
  * Requirements:
  *
- * - JavaFX SDK
- * - jeval
+ * - jeval <https://github.com/lambdaprime/jeval>
  *
  * @author lambdaprime <https://github.com/lambdaprime>
  */
+//dependency org.openjfx:javafx-controls:11
 import javafx.application.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -106,7 +103,7 @@ class Notifier99 extends Application {
     }
 
     public static MediaPlayer playSound() {
-        String path = "untie.wav";
+        String path = scriptPath.get().resolveSibling("untie.wav").toString();
           
         //Instantiating Media class  
         Media media = new Media(new File(path).toURI().toString());  
