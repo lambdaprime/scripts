@@ -1,7 +1,7 @@
 /**
  * Copyright 2020 lambdaprime
  * 
- * Email: id.blackmesa@gmail.com 
+ * Email: intid@protonmail.com 
  * Website: https://github.com/lambdaprime
  */
 

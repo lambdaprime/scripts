@@ -12,4 +12,4 @@ Everything in between <exclude></exclude> tags are ignored.
 
 *md-to-html.java* - converts Markdown to HTML.
 
-lambdaprime <id.blackmesa@gmail.com>
+lambdaprime <intid@protonmail.com>
