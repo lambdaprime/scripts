@@ -18,6 +18,7 @@
  * @author lambdaprime <https://github.com/lambdaprime>
  */
 //dependency org.openjfx:javafx-controls:11
+//dependency org.openjfx:javafx-media:11
 import javafx.application.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
