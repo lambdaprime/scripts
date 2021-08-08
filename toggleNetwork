@@ -1,0 +1,19 @@
+#
+# Turns network on and off
+#
+
+#!/bin/sh
+TOGGLE=$HOME/.toggleNetwork
+IFACE=enp111s0
+
+if [ ! -e $TOGGLE ]; then
+    touch $TOGGLE
+    sudo -n ifconfig $IFACE up
+    notify-send "Network up"
+else
+    rm $TOGGLE
+    sudo -n ifconfig $IFACE down
+    notify-send "Network down"
+fi
+
+exit 0
