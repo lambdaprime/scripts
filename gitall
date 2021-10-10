@@ -1,0 +1,51 @@
+#!/usr/bin/env jeval
+
+/**
+ * Searches for all git repositories inside of a current folder
+ * and runs a given command for each of them recursively.
+ *
+ * Requirements:
+ *
+ * - jeval 23
+ *
+ * Author: lambdaprime <https://github.com/lambdaprime>
+ *
+ * Example:
+ * 
+ * % gitall status
+ * -- Repository folder: repo1
+ * On branch main
+ * Your branch is up to date with 'origin/main'.
+ *
+ * nothing to commit, working tree clean
+ *
+ *
+ * -- Repository folder: repo1
+ * On branch main
+ * Your branch is up to date with 'origin/main'.
+ *
+ * nothing to commit, working tree clean
+ *
+ * ...
+ *
+ */
+
+if (args.length < 1) {
+    out.println("Usage: gitall <GIT ARGUMENTS>");
+    exit(1);
+}
+
+void run(Path p, String cmd) {
+    out.println("-- Repository folder: " + p);
+    new XExec("git " + cmd)
+        .withDirectory(p.toString())
+        .run()
+        .forward()
+        .await();
+    out.format("\n\n");
+}
+
+Files.list(Paths.get(""))
+    .filter(p -> p.toFile().isDirectory())
+    .filter(p -> p.resolve(".git").toFile().isDirectory())
+    .forEach(p -> run(p, args[0]));

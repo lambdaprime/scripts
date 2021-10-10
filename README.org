@@ -12,4 +12,6 @@ Everything in between <exclude></exclude> tags are ignored.
 
 *md-to-html.java* - converts Markdown to HTML.
 
+*gitall* - runs Git command recursively for all subfolders which are Git repositories.
+
 lambdaprime <intid@protonmail.com>
