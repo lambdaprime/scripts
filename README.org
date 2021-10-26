@@ -14,4 +14,6 @@ Everything in between <exclude></exclude> tags are ignored.
 
 *gitall* - runs Git command recursively for all subfolders which are Git repositories.
 
+*recursive-run* - run commands recursively substituting all ${} placeholders for one value at a time
+
 lambdaprime <intid@protonmail.com>

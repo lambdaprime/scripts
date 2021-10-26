@@ -1,0 +1,91 @@
+#!/usr/bin/env jeval
+
+/**
+ * Executes all commands listed in the COMMANDS_FILE file recursively
+ * substituting all ${} in it with values taken from VALUES_FILE file.
+ * VALUES_FILE expects one value per line.
+ *
+ * You are allowed to use comments which should start with '#' in any of
+ * the files.
+ *
+ * Requirements:
+ *
+ * - jeval 23
+ *
+ * Examples
+ *
+ * 1. Execute ssh commands on multiple remote hosts.
+ *
+ * Values file hosts.txt with list of hosts:
+ *
+ * user@host1
+ * user@host2
+ * ...
+ *
+ * File cmds.txt with list of commands to run:
+ *
+ * ssh ${} "apt install openjdk"
+ * ssh ${} "systemctl start my-service"
+ *
+ * Run: recursive-run hosts.txt cmds.txt
+ *
+ * @author lambdaprime <intid@protonmail.com>
+ *
+ * @see <a href="https://github.com/lambdaprime/scripts">GitHub repository</a>
+ *
+ */
+
+if (args.length < 2) {
+    printf("Usage: [-d] VALUES_FILE TEMPLATE_FILE\n");
+    printf("Where:\n");
+    printf("-d -- dry run\n");
+    printf("\n");
+    exit(1);
+}
+
+boolean DRY_RUN = false;
+
+List<String> positionalArgs = new ArrayList<>();
+Function<String, Boolean> defaultHandler = arg -> {
+     switch (arg) {
+     case "-d":
+         DRY_RUN = true;
+         return true;
+     default:
+         positionalArgs.add(arg);
+         return true;
+     }
+};
+new SmartArgs(Map.of(), defaultHandler)
+     .parse(args);
+
+Predicate<String> removeComments = l -> !l.startsWith("#");
+Predicate<String> removeBlank = l -> !l.isBlank();
+var VALUES = Files.readAllLines(Paths.get(positionalArgs.get(0))).stream()
+    .filter(removeComments)
+    .filter(removeBlank)
+    .collect(toList());
+var COMMANDS = Files.readAllLines(Paths.get(positionalArgs.get(1))).stream()
+    .filter(removeComments)
+    .filter(removeBlank)
+    .collect(toList());
+
+var substitutor = new Substitutor();
+
+for (var value: VALUES) {
+    var m = Map.of(
+        "${}", value);
+    var cmds = substitutor.substitute(COMMANDS, m);
+    Consumer<String> run = l -> {
+        out.println("\n> " + l);
+    };
+    if (!DRY_RUN) {
+        run = run.andThen(l -> {
+            new XExec(l).run().forward().await();
+        });
+    }
+    if (!cli.askConfirm("Executing commands for value " + value))
+        continue;
+    cmds.stream()
+        .forEach(run);
+}
