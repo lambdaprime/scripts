@@ -1,0 +1,27 @@
+# store all vars in single place so they can be sourced to different shells (bash/zsh)
+
+# less
+# disable saving history to file
+export LESSHISTFILE=-
+# keep history in command line buffer
+export LESSHISTSIZE=500
+
+# zsh
+# keep history in command line buffer
+export HISTSIZE=500
+# disable saving history to file
+export SAVEHIST=0
+export HISTFILE=/dev/null
+
+# dear aliases
+alias mc='. /usr/share/mc/bin/mc-wrapper.sh -a'
+alias amend='git commit --amend --no-edit'
+alias glog='git log'
+alias gcb='gradle --offline clean build'
+alias glist='git stash list'
+alias gsave='git add -A && git stash save'
+alias gpop='git clean -fd; git stash pop'
+alias gdrop='git stash drop'
+alias gapply='git stash apply'
+alias hard='git reset --hard origin/main'
+alias gsoft='git reset --soft HEAD~1'
