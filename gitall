@@ -30,19 +30,43 @@
  *
  */
 
+public static final String ANSI_RESET = "\u001B[0m";
+public static final String ANSI_GREEN = "\u001B[32m";
+
+List<String> UP_TO_DATE = List.of(
+    """
+    On branch master
+    Your branch is up to date with 'origin/master'.
+
+    nothing to commit, working tree clean"""
+);
+
 if (args.length < 1) {
     out.println("Usage: gitall <GIT ARGUMENTS>");
     exit(1);
 }
 
 void run(Path p, String cmd) {
-    out.println("-- Repository folder: " + p);
-    new XExec("git " + cmd)
+    out.print(ANSI_GREEN + "-- Repository folder: " + p  + ANSI_RESET);
+    var proc = new XExec("git " + cmd)
         .withDirectory(p.toString())
         .start()
-        .forwardOutputAsync(true)
-        .await();
-    out.format("\n\n");
+        .outputAsync(false);
+
+    var output = proc.stdout().trim();
+    if (!output.isEmpty()) {
+        if (UP_TO_DATE.contains(output)) out.println(": Up-to-date");
+        else out.println("\n" + output);
+    }
+    
+    var err = proc.stderr().trim();
+    if (!err.isEmpty()) {
+        var errLines = err.lines().map(String::trim).filter(s -> !s.isEmpty()).toList();
+        if (err.contains("fatal: Could not read from remote repository.")) out.println(": " + errLines.get(0)); 
+        else if (err.contains("Everything up-to-date")) out.println(": " + err);
+        else out.println("\n" + err); 
+    }
+    out.println();
 }
 
 Files.list(Paths.get(""))
