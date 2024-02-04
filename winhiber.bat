@@ -4,6 +4,7 @@
 :: automatically hibernate.
 ::
 :: Setup:
+:: - Make sure that Sleep is activated: System -> Power -> Sleep
 :: - Open Task Scheduler
 :: - Create Task
 ::  - Name: winhiber
