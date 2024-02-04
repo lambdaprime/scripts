@@ -6,7 +6,7 @@
  *
  * Requirements:
  *
- * - jeval 23
+ * - jeval 25
  *
  * Author: lambdaprime <https://github.com/lambdaprime>
  *
@@ -39,8 +39,8 @@ void run(Path p, String cmd) {
     out.println("-- Repository folder: " + p);
     new XExec("git " + cmd)
         .withDirectory(p.toString())
-        .run()
-        .forward()
+        .start()
+        .forwardOutputAsync(true)
         .await();
     out.format("\n\n");
 }
