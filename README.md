@@ -8,7 +8,7 @@ Everything in between <exclude></exclude> tags are ignored.
 
 [Notifier99](Notifier99.java) - shows particular message every 20 minutes.
 
-[mysql-ping](mysql-ping) - pings MySQL server indefinitely and prints the response time.
+[mysql-ping](mysql-ping.java) - pings MySQL server indefinitely and prints the response time.
 
 [md-to-html](md-to-html.java) - converts Markdown to HTML.
 

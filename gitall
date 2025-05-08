@@ -6,7 +6,7 @@
  *
  * Requirements:
  *
- * - jeval 25
+ * - jeval v25
  *
  * Author: lambdaprime <https://github.com/lambdaprime>
  *
@@ -30,8 +30,8 @@
  *
  */
 
-public static final String ANSI_RESET = "\u001B[0m";
-public static final String ANSI_GREEN = "\u001B[32m";
+String ANSI_RESET = "\u001B[0m";
+String ANSI_GREEN = "\u001B[32m";
 
 List<String> UP_TO_DATE = List.of(
     """

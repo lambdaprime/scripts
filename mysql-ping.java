@@ -4,28 +4,29 @@
  * Pings MySQL server indefinitely and prints the response time.
  * Does not print consecutive response times which are equal.
  *
- * Requires jeval
+ * Requires jeval v26
  *
  */
 
-void pingUntilOk(String ip, String login, String pass) {
+void pingUntilOk(String ip, int port, String login, String pass) {
     while (true) {
-        var r = new Exec("mysql",
+        var r = new XExec("mysql",
                          "-h", ip,
                          "-u", login,
                          "-p" + pass,
+                         "-P" + port,
                          "--connect-timeout=1",
-                         "-e", "select 1").run();
+                          "-e", "select 1").start().forwardStderrAsync(true);
         try {
-            if (r.code.get() == 0) break;
+            if (r.code().get() == 0) break;
         } catch (Exception e) { throw new RuntimeException(e); }
     }
 }
 
-void infinitePing(String ip, String login, String pass) {
+void infinitePing(String ip, int port, String login, String pass) {
     long prev = 0;
     while (true) {
-        var msec = new Microprofiler().measureRealTime(() -> pingUntilOk(ip, login, pass));
+        var msec = new Microprofiler().measureRealTime(() -> pingUntilOk(ip, port, login, pass));
         if (Math.abs(prev - msec) > 5) {
             out.format("%d msec\n", msec);
             prev = msec;
@@ -33,4 +34,4 @@ void infinitePing(String ip, String login, String pass) {
     }
 }
 
-infinitePing("172.16.2.100", "admin", "password");
+infinitePing("127.0.0.1", 3306, "admin", "password");
