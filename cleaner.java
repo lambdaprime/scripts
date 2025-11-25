@@ -29,7 +29,10 @@ void deleteRecursively(String path) {
     var fullPath = fullPath(path);
     try {
         log("Removing " + fullPath);
-        XFiles.deleteRecursively(fullPath);
+        if (fullPath.toString().contains("*"))
+            XFiles.findFiles(fullPath.toString()).forEach(Unchecked.wrapAccept(Files::delete));
+        else
+            XFiles.deleteRecursively(fullPath);
     } catch (Exception e) {
         log("Error removing %s: %s".formatted(fullPath, e.getMessage()));
     }
