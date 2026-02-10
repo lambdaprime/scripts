@@ -25,4 +25,40 @@ Instead of masking quotes in string literals:
 When working with Stream use ".toList()" instead of ".collect(Collectors.toList())"
 
 Don't use @SuppressWarnings
+
+When logging exceptions use short "e.getMessage()" at ERROR level and more detailed stacktrace at DEBUG level:
+LOGGER.error(e.getMessage());
+LOGGER.debug(e.getMessage(), e);
+
+To work with JSON use "jackson" library. To create ObjectMapper use following template:
+new ObjectMapper()
+    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+    .registerModule(JsonFormat.getCloudEventJacksonModule())
+    .registerModule(new Jdk8Module())
+    .registerModule(new JavaTimeModule());
+To define JSON POJO objects use Java records instead of Java classes.
+
+To make REST API calls use Java HttpClient. Example:
+var request = HttpRequest.newBuilder()
+    .uri(URI.create(endpoint))
+    .header("Accept", "application/json")
+    .header("Content-Type", "application/json")
+    .GET()
+    .build();
+try {
+    var response = httpClient.send(request, BodyHandlers.ofString());
+    int statusCode = response.statusCode();
+    var body = response.body();
+    LOGGER.debug("api url {} call completed statusCode: {}", request.uri(), statusCode);
+    if (statusCode == 200) {
+        var obj = objectMapper.readValue(body, Obj.class);
+    } else {
+        throw new RuntimeException("API error: " + statusCode);
+    }
+} catch (RuntimeException e) {
+    throw e;
+} catch (Exception e) {
+    throw new RuntimeException(e);
+}
 """
