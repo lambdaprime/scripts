@@ -10,39 +10,39 @@
  * @author lambdaprime intid@protonmail.com
  */
 
-Path fullPath(String path) {
-    return Path.of(path.replaceFirst("^~", System.getProperty("user.home").replace("\\", "/")));
+String resolveHome(String path) {
+    return path.replaceFirst("^~", System.getProperty("user.home").replace("\\", "/"));
 }
 
 void log(String line) {
     try {
         line = "[%s] %s\n".formatted(Instant.now(), line);
         out.print(line);
-        Files.writeString(fullPath("~/.cleaner.log"), line,
+        Files.writeString(Path.of(resolveHome("~/.cleaner.log")), line,
             StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     } catch (Exception e) {
-         err.format("Loggin error: %s\n", e);   
+         err.format("Log error: %s\n", e);   
     }
 }
 
 void deleteRecursively(String path) {
-    var fullPath = fullPath(path);
+    path = resolveHome(path);
     try {
-        log("Removing " + fullPath);
-        if (fullPath.toString().contains("*"))
-            XFiles.findFiles(fullPath.toString())
-                .peek(out::println)
+        log("Remove " + path);
+        if (path.contains("*"))
+            XFiles.findFiles(path)
+                .peek(f -> log("Remove " + f))
                 .forEach(Unchecked.wrapAccept(Files::delete));
         else
-            XFiles.deleteRecursively(fullPath);
+            XFiles.deleteRecursively(Path.of(path));
     } catch (Exception e) {
-        log("Error removing %s: %s".formatted(fullPath, e.getMessage()));
+        log("Error removing %s: %s".formatted(path, e.getMessage()));
     }
 }
 
 void substitute(String path, boolean isPerLine, Map<String, String> mapping) {
     var substitutor = new Substitutor().withRegexpSupport();
-    var fullPath = fullPath(path);
+    var fullPath = Path.of(resolveHome(path));
     try {
         var updatedFiles = isPerLine? substitutor.substitutePerLine(fullPath, mapping)
             : substitutor.substitute(fullPath, mapping);
@@ -50,6 +50,15 @@ void substitute(String path, boolean isPerLine, Map<String, String> mapping) {
     } catch (Exception e) {
         log("Error updating %s: %s".formatted(fullPath, e.getMessage()));
     }
+}
+
+void run(String... cmd) {
+    var exec = new XExec(cmd);
+    log("Run " + Arrays.toString(exec.getCommand()));
+    exec
+        .start()
+        .forwardStdoutAsync(true)
+        .stderrThrow();
 }
 
 void linuxCleanup() {
@@ -86,10 +95,7 @@ void linuxCleanup() {
         "\nHistory.*", ""));
 
     // adb keeps running even after you disconnected the phone
-    new XExec("adb kill-server")
-        .start()
-        .forwardStdoutAsync(true)
-        .stderrThrow();
+    run("adb kill-server");
 }
 
 void windowsCleanup() {
@@ -98,14 +104,12 @@ void windowsCleanup() {
     deleteRecursively("C:\\ProgramData\\Adobe\\ARM");
     deleteRecursively("C:\\ProgramData\\Microsoft\\EdgeUpdate\\Log");
     deleteRecursively("C:\\Program Files (x86)\\Microsoft\\EdgeUpdate");
+    deleteRecursively("C:/Users/*/AppData/Roaming/Mozilla/Firefox/Profiles/*/storage/default/*");
 
-    new XExec("schtasks.exe",
+    run("schtasks.exe",
               "/Run",
               "/TN",
-              "\\Microsoft\\Windows\\Servicing\\StartComponentCleanup")
-        .start()
-        .forwardStdoutAsync(true)
-        .stderrThrow();
+              "\\Microsoft\\Windows\\Servicing\\StartComponentCleanup");
 }
 
 if (XUtils.isWindows()) {
