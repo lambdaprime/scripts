@@ -11,7 +11,7 @@
  */
 
 Path fullPath(String path) {
-    return Path.of(path.replaceFirst("^~", System.getProperty("user.home"))).toAbsolutePath();
+    return Path.of(path.replaceFirst("^~", System.getProperty("user.home").replace("\\", "/")));
 }
 
 void log(String line) {
@@ -30,7 +30,9 @@ void deleteRecursively(String path) {
     try {
         log("Removing " + fullPath);
         if (fullPath.toString().contains("*"))
-            XFiles.findFiles(fullPath.toString()).forEach(Unchecked.wrapAccept(Files::delete));
+            XFiles.findFiles(fullPath.toString())
+                .peek(out::println)
+                .forEach(Unchecked.wrapAccept(Files::delete));
         else
             XFiles.deleteRecursively(fullPath);
     } catch (Exception e) {
@@ -62,13 +64,15 @@ void linuxCleanup() {
     deleteRecursively("~/.config/qpdfview");
     deleteRecursively("~/.config/lxqt/debug.log");
     deleteRecursively("~/.config/libreoffice/*/user/registrymodifications.xcu");
-    deleteRecursively("~/.config/libreoffice/*/user/backup");
+    deleteRecursively("~/.config/libreoffice/*/user/backup/**");
     deleteRecursively("~/.config/Microsoft");
     deleteRecursively("~/.java/.userPrefs/tool/JShell/prefs.xml");
     deleteRecursively("~/.xsession-errors");
     deleteRecursively("~/.sqlite_history");
     deleteRecursively("~/.lesshst");
     deleteRecursively("~/.octave_hist");
+    deleteRecursively("~/hs_err*.log");
+    deleteRecursively("~/.emacs.d/ellama-sessions/*");
 
     substitute("~/.config/UMLet/umlet.cfg", true, Map.of(
         "^recent_files=.*", "recent_files="));
