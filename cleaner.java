@@ -104,7 +104,14 @@ void windowsCleanup() {
     deleteRecursively("C:\\ProgramData\\Adobe\\ARM");
     deleteRecursively("C:\\ProgramData\\Microsoft\\EdgeUpdate\\Log");
     deleteRecursively("C:\\Program Files (x86)\\Microsoft\\EdgeUpdate");
-    deleteRecursively("C:/Users/*/AppData/Roaming/Mozilla/Firefox/Profiles/*/storage/default/*");
+    deleteRecursively("C:\\Users\\*\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\*\\storage\\default\\**");
+    deleteRecursively("C:\\Users\\*\\AppData\\Local\\Microsoft\\Edge\\**");
+    deleteRecursively("C:\\Users\\*\\AppData\\Local\\Microsoft\\Internet Explorer\\**");
+    deleteRecursively("C:\\Users\\*\\AppData\\Local\\Microsoft\\Windows\\WebCache\\**");
+    deleteRecursively("C:\\Users\\*\\AppData\\Local\\CrashDumps\\**");
+    deleteRecursively("C:\\Users\\*\\AppData\\Local\\Microsoft\\OneDrive\\**");
+    deleteRecursively("C:\\Users\\*\\AppData\\Local\\Temp\\**");
+    deleteRecursively("C:\\Users\\*\\AppData\\Local\\Adobe\\ARM\\**");
 
     run("schtasks.exe",
               "/Run",
