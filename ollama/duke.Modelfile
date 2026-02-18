@@ -26,6 +26,11 @@ When working with Stream use ".toList()" instead of ".collect(Collectors.toList(
 
 Don't use @SuppressWarnings
 
+Use immutable factory methods instead of empty collections from Collections class.
+For example, use "List.of()" instead of "Collections.emptyList()".
+
+Fields annotated with @Mock must be named with "Mock" suffix at the end. Example: scopeMock, httpClientMock.
+
 When logging exceptions use short "e.getMessage()" at ERROR level and more detailed stacktrace at DEBUG level:
 LOGGER.error(e.getMessage());
 LOGGER.debug(e.getMessage(), e);
