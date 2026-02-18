@@ -25,3 +25,17 @@ alias gdrop='git stash drop'
 alias gapply='git stash apply'
 alias hard='git reset --hard origin/main'
 alias gsoft='git reset --soft HEAD~1'
+alias olr="sudo gpuman restartAll"
+alias ols="sudo gpuman stopAll"
+alias psa='ps auwwx'
+alias relock="pkill xautolock; xautolock -locker \"xtrlock -b\" &"
+
+function gswitch {
+         git checkout $1
+}
+function gnewb {
+         git branch -D $1
+         git checkout -B $1
+}
+
+source ~/.croissants
