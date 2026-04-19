@@ -1,0 +1,185 @@
+#!/usr/bin/env jeval
+
+//dependency dev.langchain4j:langchain4j-mcp:1.12.2-beta22
+
+import dev.langchain4j.mcp.client.*;
+import dev.langchain4j.agent.tool.*;
+import dev.langchain4j.mcp.client.transport.*;
+import dev.langchain4j.mcp.client.transport.http.*;
+import dev.langchain4j.mcp.client.transport.websocket.*;
+import dev.langchain4j.model.chat.request.json.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+
+import id.xfunction.cli.CommandOptions;
+
+if (args.length == 0) {
+    cli.printerr("""
+*mcpcat* – a lightweight command‑line client for interacting with the Model Context Protocol (MCP) servers.
+
+A small Java script that lets you list and call MCP‑compatible tools on a server.
+Supported MCP transports: Streamable HTTP, WebSockets, SSE.
+
+# Options
+
+-mcpUrl=<URL> -- MCP server address
+-action=<list-tools | call-tool> -- operation to perform
+
+## list-tools
+Print all registered tools on the MCP server
+
+-filter=<regexp> -- regular‑expression used to filter tool names. By default filter is off.
+
+## call-tool
+Invoke a tool
+
+-name=<string> -- name of the tool to invoke
+-arguments=<args> -- tool arguments which will be passed to MCP tool as-is.
+  Usually this should be JSON. It is possible to read arguments from file, in this case
+  args must be in format "@/path/to/args/file"
+
+## Generic options
+
+-useHttpV1_1=<true|false> -- Use the older HTTP/1.1 transport for a server that accepts it. Default value: false
+-connTimeoutInSecs=<int> -- connection timeout in seconds. Default value: 10sec
+-toolExecutionTimeoutInSecs=<int> -- how long a tool may run before the client aborts it. Default value: 10min
+-logRequests=<true|false> -- write every request to stdout. Default value: false
+-logResponses=<true|false> -- write every response to stdout. Default value: false
+-output=<filepath> -- forward stdout to the given file path. By default it is off.
+
+# Examples:
+
+mcpcat -mcpUrl=http://localhost:8000/mcp -action=list-tools
+mcpcat -mcpUrl=http://localhost:8000/mcp -action=call-tool -name=chat -arguments='{ "prompt" : "Hi" }'
+{
+ "prompt" : "Hi"
+}
+""");
+    exit(1);
+}
+
+var objectMapper = new ObjectMapper();
+var options = CommandOptions.collectOptions(args);
+
+String pretty(String json) {
+    try {
+        var obj = objectMapper.readValue(json, Object.class);
+        return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+    } catch (IOException e) {
+        return json;
+    }
+}
+
+McpTransport createTransport(String mcpUrl) {
+    var connTimeout = Duration.ofSeconds(
+            options.getOptionInt("connTimeoutInSecs").orElse(10));
+    var logRequests = options.isOptionTrue("logRequests");
+    var logResponses = options.isOptionTrue("logResponses");
+    Map<String, String> headers = Map.of();
+
+    if (mcpUrl.endsWith("/sse")) {
+        return new HttpMcpTransport.Builder()
+            .sseUrl(mcpUrl)
+            .customHeaders(headers)
+            .logRequests(logRequests)
+            .logResponses(logResponses)
+            .timeout(connTimeout)
+            .build();
+    } else if (mcpUrl.startsWith("ws://")) {
+        return new WebSocketMcpTransport.Builder()
+            .url(mcpUrl)
+            .logRequests(logRequests)
+            .logResponses(logResponses)
+            .timeout(connTimeout)
+            .build();
+    }
+
+    StreamableHttpMcpTransport.Builder builder = new StreamableHttpMcpTransport.Builder()
+        .url(mcpUrl)
+        .customHeaders(headers)
+        .logRequests(logRequests)
+        .timeout(connTimeout)
+        .logResponses(logResponses);
+
+    if (options.isOptionTrue("useHttpV1_1")) {
+        builder.setHttpVersion1_1();
+    }
+
+    return builder.build();
+}
+
+var transport = createTransport(options.getRequiredOption("mcpUrl"));
+var client = new DefaultMcpClient.Builder()
+    .autoHealthCheck(false)
+    .toolExecutionTimeout(Duration.ofSeconds(options.getOptionInt("toolExecutionTimeoutInSecs").orElse(60*10)))
+    .transport(transport)
+    .build();
+
+String bold(String str) {
+    return "\033[1m" + str + "\033[0m";
+}
+
+String asString(JsonObjectSchema spec) {
+    return """
+        %s %s
+        %s %s
+        %s
+        %s
+        """.formatted(bold("Required:"),
+            spec.required(),
+            bold("Description:"),
+            spec.description(),
+            bold("Properties:"),
+        spec.properties().entrySet().stream().map(e -> "%s\n %s".formatted(e.getKey(), e.getValue())).collect(joining("\n")));
+}
+
+String asString(ToolSpecification spec) {
+    return """
+        %s %s
+        %s %s
+        %s
+        %s
+        """.formatted(bold("Name:"),
+            spec.name(),
+            bold("Description:"),
+            spec.description(),
+            bold("Parameters:"),
+            asString(spec.parameters()));
+}
+
+void teeToFile(String name) {
+    options.getOption("output").map(Path::of)
+        .ifPresent(p -> {
+            var outputFile = p.resolve(name);
+            cli.print("Forward output to " + outputFile);
+            Unchecked.run(() -> Files.createDirectories(outputFile.getParent()));
+            cli.teeToFile(outputFile);
+        });
+}
+
+void listTools(String toolNameRegexp) {
+    teeToFile("listTools");
+    client.listTools().stream()
+        .filter(spec -> spec.name().matches(toolNameRegexp))
+        .map(spec -> asString(spec)).forEach(cli::print);
+}
+
+void callTool(String name, String arguments) throws IOException {
+    teeToFile(name);
+    if (!arguments.isEmpty() && arguments.charAt(0) == '@') {
+        arguments = Files.readString(Path.of(arguments.substring(1).replaceFirst("^~", System.getProperty("user.home"))));
+    }
+    var result = client.executeTool(ToolExecutionRequest.builder()
+                                    .name(name)
+                                    .arguments(arguments)
+                                    .build());
+    cli.print(pretty(result.resultText()));
+}
+
+switch (options.getRequiredOption("action")) {
+case "list-tools" -> listTools(options.getOption("regexp").orElse(".*"));
+case "call-tool" -> callTool(options.getRequiredOption("name"), options.getOption("arguments").orElse(""));
+default -> throw new Exception("'action' is not recognized");
+}
+
+
