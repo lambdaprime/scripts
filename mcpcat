@@ -1,4 +1,8 @@
 #!/usr/bin/env jeval
+/**
+ * Requirements:
+ * jeval v27 - https://github.com/lambdaprime/jeval
+ */
 
 //dependency dev.langchain4j:langchain4j-mcp:1.12.2-beta22
 
@@ -40,6 +44,7 @@ Invoke a tool
 
 ## Generic options
 
+-header:<name>=<value> -- add custom HTTP header to requests. Example: -header:Authorization="Bearer token123"
 -useHttpV1_1=<true|false> -- Use the older HTTP/1.1 transport for a server that accepts it. Default value: false
 -connTimeoutInSecs=<int> -- connection timeout in seconds. Default value: 10sec
 -toolExecutionTimeoutInSecs=<int> -- how long a tool may run before the client aborts it. Default value: 10min
@@ -50,6 +55,7 @@ Invoke a tool
 # Examples:
 
 mcpcat -mcpUrl=http://localhost:8000/mcp -action=list-tools
+mcpcat -mcpUrl=http://localhost:8000/mcp -header:Authorization="Bearer token123" -action=list-tools
 mcpcat -mcpUrl=http://localhost:8000/mcp -action=call-tool -name=chat -arguments='{ "prompt" : "Hi" }'
 {
  "prompt" : "Hi"
@@ -70,12 +76,31 @@ String pretty(String json) {
     }
 }
 
+Map<String, String> readHeaders() {
+    var headers = new HashMap<String, String>();
+
+    // Iterate over all properties
+    options.forEach((key, value) -> {
+        // Check if the property starts with "header:"
+        if (key.toString().startsWith("header:")) {
+            // Extract the header name (everything after "header:")
+            var headerName = key.toString().substring("header:".length());
+
+            // Add to headers map
+            headers.put(headerName, value.toString());
+        }
+    });
+
+    return headers;
+}
+
 McpTransport createTransport(String mcpUrl) {
     var connTimeout = Duration.ofSeconds(
             options.getOptionInt("connTimeoutInSecs").orElse(10));
     var logRequests = options.isOptionTrue("logRequests");
     var logResponses = options.isOptionTrue("logResponses");
-    Map<String, String> headers = Map.of();
+
+    Map<String, String> headers = readHeaders();
 
     if (mcpUrl.endsWith("/sse")) {
         return new HttpMcpTransport.Builder()
