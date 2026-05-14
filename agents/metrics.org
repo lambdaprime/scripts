@@ -1,0 +1,40 @@
+*** Steps how to define metric in Java
+
+Here are the steps explaining how to define metric in Java.
+As an example we use metric with name "xxx"
+
+**** Step 1: Define metric constants in Metrics interface
+
+#+begin_src
+String XXX_COUNT_METRIC = "xxx_total";
+String XXX_COUNT_METRIC_DESCRIPTION = "Total number of xxx";
+
+String XXX_FAILED_COUNT_METRIC = "xxx_failed_total";
+String XXX_FAILED_COUNT_METRIC_DESCRIPTION = "Total number of failed xxx";
+
+String XXX_TIME_METRIC = "xxx_time_ms";
+String XXX_TIME_METRIC_DESCRIPTION = "xxx in millis";
+#+end_src
+
+**** Step 2: Create metric objects
+
+#+begin_src 
+    private static final LongCounter XXX_COUNT_METER =
+            METER.counterBuilder(Metrics.XXX_COUNT_METRIC)
+                    .setDescription(Metrics.XXX_COUNT_METRIC_DESCRIPTION)
+                    .build();
+    private static final LongCounter XXX_FAILED_COUNT_METER =
+            METER.counterBuilder(Metrics.XXX_FAILED_COUNT_METRIC)
+                    .setDescription(Metrics.XXX_FAILED_COUNT_METRIC_DESCRIPTION)
+                    .build();
+    private static final LongHistogram XXX_TIME_METER =
+            METER.histogramBuilder(Metrics.XXX_TIME_METRIC)
+                    .setDescription(Metrics.XXX_TIME_METRIC_DESCRIPTION)
+                    .ofLongs()
+                    .build();
+#+end_src
+
+*** TASK
+
+Please generate code for the metrics listed below. Generate code for ALL the metrics, one metric at a time. Do not mix metrics.
+- metric1
