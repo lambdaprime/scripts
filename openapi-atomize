@@ -1,0 +1,75 @@
+#!/usr/bin/env jeval
+/**
+ * Requirements:
+ * jeval v27 - https://github.com/lambdaprime/jeval
+ */
+
+//dependency com.fasterxml.jackson.core:jackson-databind:2.22.0
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Map;
+import java.util.logging.Logger;
+
+import id.xfunction.cli.CommandOptions;
+
+if (args.length == 0) {
+    cli.printerr("""
+*openapi-atomize* - splits OpenAPI JSON files into smaller, focused files, each describing a single API endpoint.
+
+Many popular web services document their APIs using the *OpenAPI* format, typically providing them as downloadable JSON files. However, these files can be extremely large—often exceeding the context window limits of large language models (LLMs). Additionally, since not all APIs are relevant to a given task, including unnecessary details in the context can clutter processing and degrade performance.
+
+*openapi-atomize* helps to ensure that LLMs can efficiently interact with web service APIs by reading only the relevant APIs for a given task—improving accuracy and reducing computational overhead.
+
+# Options
+
+-openApiPath=<path> -- path to OpenAPI JSON
+-output=<path> -- output folder path where atomized OpenAPI files will be stored
+
+# Examples:
+
+openapi-atomize -openApiPath ~/slack_web_openapi_v2.json -output=/tmp/slack_rest_api
+""");
+    exit(1);
+}
+
+var options = CommandOptions.collectOptions(args);
+
+ObjectMapper objectMapper = new ObjectMapper()
+    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+
+/**
+ * Atomizes an OpenAPI JSON file into separate files for each endpoint.
+ *
+ * @param inputFilePath Path to the input OpenAPI JSON file
+ * @throws IOException If an I/O error occurs while reading or writing files
+ */
+void atomize(Path inputFilePath) throws IOException {
+    var openApiJson = objectMapper.readTree(Files.newInputStream(inputFilePath));
+    var pathsNode = (ObjectNode) openApiJson.path("paths");
+
+    for (var pathEntry : pathsNode.properties()) {
+        String pathKey = pathEntry.getKey();
+        Path outputPath = Path.of(options.getRequiredOption("output"), pathKey + ".json");
+
+        // Ensure the directory exists
+        Files.createDirectories(outputPath.getParent());
+
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(
+            outputPath.toFile(),
+            pathEntry
+        );
+
+        out.println("Saved spec endpoint to: " + outputPath);
+    }
+}
+
+atomize(Path.of(options.getRequiredOption("openApiPath")));

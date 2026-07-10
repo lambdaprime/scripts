@@ -1,5 +1,7 @@
 [mcpcat](mcpcat) - a lightweight command‑line client for interacting with the Model Context Protocol (MCP) servers.
 
+[openapi-atomize](openapi-atomize) - splits OpenAPI JSON files into smaller, focused files, each describing a single API endpoint.
+
 [generateTOC](generateTOC.pl) - generates table of content (TOC) in HTML files by parsing all header tags in it and inserting generated TOC inside of <content></content> tags of the original file.  
 The TOC is composed with hyperlinks by pressing which you will jump to required location in the document.
 Everything in between <exclude></exclude> tags are ignored.
