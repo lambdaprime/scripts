@@ -74,21 +74,39 @@ JsonNode read(Path inputFilePath) throws IOException {
  */
 void atomize(Path inputFilePath) throws IOException {
     JsonNode openApiJson = read(inputFilePath);
-    var pathsNode = (ObjectNode) openApiJson.path("paths");
+    if (openApiJson.path("paths") instanceof ObjectNode) {
+        var pathsNode = (ObjectNode) openApiJson.path("paths");
+        for (var pathEntry : pathsNode.properties()) {
+            String pathKey = pathEntry.getKey();
+            Path outputPath = Path.of(options.getRequiredOption("output"), pathKey + ".json");
 
-    for (var pathEntry : pathsNode.properties()) {
-        String pathKey = pathEntry.getKey();
-        Path outputPath = Path.of(options.getRequiredOption("output"), pathKey + ".json");
+            // Ensure the directory exists
+            Files.createDirectories(outputPath.getParent());
 
-        // Ensure the directory exists
-        Files.createDirectories(outputPath.getParent());
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(
+                outputPath.toFile(),
+                pathEntry
+            );
 
-        objectMapper.writerWithDefaultPrettyPrinter().writeValue(
-            outputPath.toFile(),
-            pathEntry
-        );
+            out.println("Saved spec endpoint to: " + outputPath);
+        }
+    }
+    if (openApiJson.path("definitions") instanceof ObjectNode) {
+        var definitionsNode = (ObjectNode) openApiJson.path("definitions");
+        for (var defEntry : definitionsNode.properties()) {
+            String defKey = defEntry.getKey();
+            Path outputPath = Path.of(options.getRequiredOption("output"), "$definitions", defKey + ".json");
 
-        out.println("Saved spec endpoint to: " + outputPath);
+            // Ensure the directory exists
+            Files.createDirectories(outputPath.getParent());
+
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(
+                outputPath.toFile(),
+                defEntry
+            );
+
+            out.println("Saved spec definition to: " + outputPath);
+        }
     }
 }
 
